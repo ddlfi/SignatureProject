@@ -24,24 +24,26 @@ void rain_enc_forward_256_1(const uint8_t* witness,
     }
 }
 
-void rain_enc_forward_256_prover(field::GF2_256* v, field::GF2_256* bf_y) {
+void rain_enc_forward_256_prover(field::GF2_256* v, field::GF2_256* v_vec,
+                                 field::GF2_256* bf_y) {
     bf_y[0] = v[0];
     for (int i = 1; i < 3; i++) {
-        bf_y[i] = v[i];
-        bf_y[i] = bf_y[i].multiply_with_transposed_GF2_matrix(matrix_transposed[i - 1]);
+        bf_y[i] = gf256_vec_muti_with_transposed_GF2_matrix(
+            v_vec + 256 * i, matrix_transposed[i - 1]);
         bf_y[i] += v[0];
     }
 }
 
-void rain_enc_forward_256_verifier(field::GF2_256* q, field::GF2_256 delta,
+void rain_enc_forward_256_verifier(field::GF2_256* q, field::GF2_256* q_vec,
+                                   field::GF2_256 delta,
                                    const std::vector<uint8_t>& in,
                                    field::GF2_256* bf_y) {
     field::GF2_256 in_256;
     in_256.from_bytes(in.data());
     bf_y[0] = q[0] + delta * roundconst[0] + delta * in_256;
     for (int i = 1; i < 3; i++) {
-        bf_y[i] = q[i];
-        bf_y[i] = bf_y[i].multiply_with_transposed_GF2_matrix(matrix_transposed[i - 1]);
+        bf_y[i] = gf256_vec_muti_with_transposed_GF2_matrix(
+            q_vec + 256 * i, matrix_transposed[i - 1]);
         bf_y[i] += delta * roundconst[i] + q[0];
     }
 }
@@ -56,7 +58,6 @@ void rain_enc_backword_256_1(const uint8_t* witness, field::GF2_256* bf_y) {
         witness += 4 * sizeof(uint64_t);
         bf_y[i] = tmp;
     }
-
 
     tmp.from_bytes(witness);
 
@@ -78,7 +79,8 @@ void rain_enc_backword_256_verifier(field::GF2_256* q, field::GF2_256* bf_y) {
     bf_y[2] = q[0] + q[3];
 }
 
-void rain_enc_constrain_256_prover(field::GF2_256* v, const uint8_t* witness,
+void rain_enc_constrain_256_prover(field::GF2_256* v, field::GF2_256* v_vec,
+                                   const uint8_t* witness,
                                    const std::vector<uint8_t>& in,
                                    field::GF2_256* A_0, field::GF2_256* A_1) {
     std::vector<field::GF2_256> inverse_input_real_value(3);
@@ -86,7 +88,7 @@ void rain_enc_constrain_256_prover(field::GF2_256* v, const uint8_t* witness,
     std::vector<field::GF2_256> inverse_input_vole_value(3);
     std::vector<field::GF2_256> inverse_output_vole_value(3);
     rain_enc_forward_256_1(witness, in, inverse_input_real_value.data());
-    rain_enc_forward_256_prover(v, inverse_input_vole_value.data());
+    rain_enc_forward_256_prover(v, v_vec, inverse_input_vole_value.data());
     rain_enc_backword_256_1(witness, inverse_output_real_value.data());
     rain_enc_backword_256_prover(v, inverse_output_vole_value.data());
     for (int i = 0; i < 3; i++) {
@@ -96,12 +98,13 @@ void rain_enc_constrain_256_prover(field::GF2_256* v, const uint8_t* witness,
     }
 }
 
-void rain_enc_constrain_256_verifier(field::GF2_256* q, field::GF2_256 delta,
+void rain_enc_constrain_256_verifier(field::GF2_256* q, field::GF2_256* q_vec,
+                                     field::GF2_256 delta,
                                      const std::vector<uint8_t>& in,
                                      field::GF2_256* B) {
     std::vector<field::GF2_256> inverse_input_vole_value(3);
     std::vector<field::GF2_256> inverse_output_vole_value(3);
-    rain_enc_forward_256_verifier(q, delta, in,
+    rain_enc_forward_256_verifier(q, q_vec, delta, in,
                                   inverse_input_vole_value.data());
     rain_enc_backword_256_verifier(q, inverse_output_vole_value.data());
     for (int i = 0; i < 3; i++) {
@@ -139,7 +142,8 @@ void hash_forward_256_1(const uint8_t* witness, field::GF2_256* bf_y,
     }
 }
 
-void hash_forward_256_prover(field::GF2_256* v, field::GF2_256* bf_y,
+void hash_forward_256_prover(field::GF2_256* v, field::GF2_256* v_vec,
+                             field::GF2_256* bf_y,
                              field::GF2_256* muti_gate_input) {
     muti_gate_input[0] = v[2];
     muti_gate_input[1] = v[0] + v[1];
@@ -150,14 +154,14 @@ void hash_forward_256_prover(field::GF2_256* v, field::GF2_256* bf_y,
     bf_y[0] = v_key + v_msg;
 
     for (int i = 1; i < 3; i++) {
-        bf_y[i] = v[i + 3];
-        bf_y[i] = bf_y[i].multiply_with_transposed_GF2_matrix(matrix_transposed[i - 1]);
+        bf_y[i] = gf256_vec_muti_with_transposed_GF2_matrix(
+            v_vec + (i + 3) * 256, matrix_transposed[i - 1]);
         bf_y[i] += v_key;
     }
 }
 
-void hash_forward_256_verifier(field::GF2_256* q, field::GF2_256 delta,
-                               field::GF2_256* bf_y,
+void hash_forward_256_verifier(field::GF2_256* q, field::GF2_256* q_vec,
+                               field::GF2_256 delta, field::GF2_256* bf_y,
                                field::GF2_256* muti_gate_input) {
     muti_gate_input[0] = q[2];
     muti_gate_input[1] = q[0] + q[1];
@@ -168,8 +172,8 @@ void hash_forward_256_verifier(field::GF2_256* q, field::GF2_256 delta,
     bf_y[0] = q_msg + q_key + delta * roundconst[0];
 
     for (int i = 1; i < 3; i++) {
-        bf_y[i] = q[i + 3];
-        bf_y[i] = bf_y[i].multiply_with_transposed_GF2_matrix(matrix_transposed[i - 1]);
+        bf_y[i] = gf256_vec_muti_with_transposed_GF2_matrix(
+            q_vec + (i + 3) * 256, matrix_transposed[i - 1]);
         bf_y[i] += q_key + delta * roundconst[i];
     }
 }
@@ -208,8 +212,9 @@ void hash_backword_256_verifier(field::GF2_256* q, field::GF2_256* bf_y,
     bf_y[2] = q[0] + q[1] + q[6];
 }
 
-void hash_constrain_256_prover(field::GF2_256* v, const uint8_t* witness,
-                               field::GF2_256* A_0, field::GF2_256* A_1) {
+void hash_constrain_256_prover(field::GF2_256* v, field::GF2_256* v_vec,
+                               const uint8_t* witness, field::GF2_256* A_0,
+                               field::GF2_256* A_1) {
     std::vector<field::GF2_256> inverse_input_real_value(3);
     std::vector<field::GF2_256> inverse_output_real_value(3);
     std::vector<field::GF2_256> inverse_input_vole_value(3);
@@ -219,7 +224,7 @@ void hash_constrain_256_prover(field::GF2_256* v, const uint8_t* witness,
 
     hash_forward_256_1(witness, inverse_input_real_value.data(),
                        muti_gate_real_value.data());
-    hash_forward_256_prover(v, inverse_input_vole_value.data(),
+    hash_forward_256_prover(v, v_vec, inverse_input_vole_value.data(),
                             muti_gate_vole_value.data());
     hash_backword_256_1(witness, inverse_output_real_value.data(),
                         muti_gate_real_value.data() + 2);
@@ -238,13 +243,13 @@ void hash_constrain_256_prover(field::GF2_256* v, const uint8_t* witness,
     }
 }
 
-void hash_constrain_256_verifier(field::GF2_256* q, field::GF2_256 delta,
-                                 field::GF2_256* B) {
+void hash_constrain_256_verifier(field::GF2_256* q, field::GF2_256* q_vec,
+                                 field::GF2_256 delta, field::GF2_256* B) {
     std::vector<field::GF2_256> inverse_input_vole_value(3);
     std::vector<field::GF2_256> inverse_output_vole_value(3);
     std::vector<field::GF2_256> muti_gate_vole_value(3);
 
-    hash_forward_256_verifier(q, delta, inverse_input_vole_value.data(),
+    hash_forward_256_verifier(q, q_vec, delta, inverse_input_vole_value.data(),
                               muti_gate_vole_value.data());
     hash_backword_256_verifier(q, inverse_output_vole_value.data(),
                                muti_gate_vole_value.data() + 2);
@@ -277,27 +282,30 @@ void gen_combined_field_vec(field::GF2_256* field_vec,
 }
 
 void path_prove(const uint8_t* witness, field::GF2_256* v,
-                const std::vector<uint8_t>& in, field::GF2_256* A_0,
-                field::GF2_256* A_1) {
-    rain_enc_constrain_256_prover(v, witness, in, A_0, A_1);
+                field::GF2_256* v_vec, const std::vector<uint8_t>& in,
+                field::GF2_256* A_0, field::GF2_256* A_1) {
+    rain_enc_constrain_256_prover(v, v_vec, witness, in, A_0, A_1);
 
-    hash_constrain_256_prover(v + 3, witness + 12 * sizeof(uint64_t), A_0 + 3,
+    hash_constrain_256_prover(v + 3, v_vec + 3 * 256,
+                              witness + 12 * sizeof(uint64_t), A_0 + 3,
                               A_1 + 3);
 
-    hash_constrain_256_prover(v + 9, witness + 36 * sizeof(uint64_t), A_0 + 7,
+    hash_constrain_256_prover(v + 9, v_vec + 9 * 256,
+                              witness + 36 * sizeof(uint64_t), A_0 + 7,
                               A_1 + 7);
 
-    hash_constrain_256_prover(v + 15, witness + 60 * sizeof(uint64_t), A_0 + 11,
+    hash_constrain_256_prover(v + 15, v_vec + 15 * 256,
+                              witness + 60 * sizeof(uint64_t), A_0 + 11,
                               A_1 + 11);
 }
 
-void path_verify(field::GF2_256* q, field::GF2_256 delta,
+void path_verify(field::GF2_256* q, field::GF2_256* q_vec, field::GF2_256 delta,
                  const std::vector<uint8_t>& in, field::GF2_256* B) {
-    rain_enc_constrain_256_verifier(q, delta, in, B);
+    rain_enc_constrain_256_verifier(q, q_vec, delta, in, B);
 
-    hash_constrain_256_verifier(q + 3, delta, B + 3);
+    hash_constrain_256_verifier(q + 3, q_vec + 3 * 256, delta, B + 3);
 
-    hash_constrain_256_verifier(q + 9, delta, B + 7);
+    hash_constrain_256_verifier(q + 9, q_vec + 9 * 256, delta, B + 7);
 
-    hash_constrain_256_verifier(q + 15, delta, B + 11);
+    hash_constrain_256_verifier(q + 15, q_vec + 15 * 256, delta, B + 11);
 }

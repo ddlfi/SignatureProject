@@ -35,12 +35,12 @@ template <typename GF> struct repetition_proof_t {
   GF T_at_R;
 };
 
-template <typename GF> struct signature_t {
-  salt_t salt;
-  std::vector<uint8_t> h_1;
-  std::vector<uint8_t> h_2;
-  std::vector<repetition_proof_t<GF>> proofs;
-};
+// template <typename GF> struct signature_t {
+//   salt_t salt;
+//   std::vector<uint8_t> h_1;
+//   std::vector<uint8_t> h_2;
+//   std::vector<repetition_proof_t<GF>> proofs;
+// };
 
 template <typename T> class RepContainer {
   std::vector<T> _data;

@@ -131,7 +131,6 @@ void vole_commit(const uint8_t* rootKey, const uint8_t* iv, unsigned int ellhat,
         // Step 11
         xor_u8_array(u, ui + i * ellhat_bytes, c + (i - 1) * ellhat_bytes,
                      ellhat_bytes);
-        printf("%d\n", i);
     }
     free(ui);
 

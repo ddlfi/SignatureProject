@@ -171,12 +171,12 @@ void vector_open(const uint8_t* k, const uint8_t* com, const uint8_t* b, uint8_t
   // Step: 3..6
   uint32_t a = 0;
   for (uint32_t i = 0; i < depth; i++) {
-    printf("2222222221\n");
+
     memcpy(cop + (lambdaBytes * i),
            k + (lambdaBytes * getNodeIndex(i + 1, (2 * a) + !b[depth - 1 - i])), lambdaBytes);
     a = (2 * a) + b[depth - 1 - i];
   }
-  printf("2222222222\n");
+
   // Step: 7
   memcpy(com_j, com + (leafIndex * lambdaBytes * 2), lambdaBytes * 2);
 }

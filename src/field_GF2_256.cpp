@@ -469,14 +469,24 @@ void gen_field_base(std::vector<field::GF2_256> &field_base) {
     }
 }
 
-
-field::GF2_256 combine_bf256_vec(field::GF2_256* bf256_vec) {
+field::GF2_256 combine_bf256_vec(field::GF2_256 *bf256_vec) {
     uint64_t zero = 0;
     field::GF2_256 result(zero);
     for (int i = 0; i < 32; i++) {
         for (int j = 7; j >= 0; j--) {
             result += bf256_vec[8 * i + j] * field_base[8 * i + 7 - j];
         }
+    }
+    return result;
+}
+
+field::GF2_256 gf256_vec_muti_with_transposed_GF2_matrix(
+    field::GF2_256 *gf256_vec, const std::array<uint64_t, 4> *matrix) {
+    uint64_t zero = 0;
+    field::GF2_256 result(zero);
+    for (int i = 0; i < 256; i++) {
+        field::GF2_256 tmp(matrix[i]);
+        result += tmp * gf256_vec[i / 8 * 8 + 7 - i % 8];
     }
     return result;
 }

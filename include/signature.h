@@ -1,10 +1,21 @@
+#include "path_prove.h"
 #include "rain.h"
 #include "random_oracle.h"
 #include "randomness.h"
 #include "universal_hashing.h"
 #include "utils.h"
 #include "vole.h"
-#include "path_prove.h"
+
+struct signature_t {
+    std::vector<uint8_t> iv;
+    std::vector<uint8_t> c;
+    std::vector<uint8_t> u_tilde;
+    std::vector<field::GF2_256> a_tilde;
+    std::vector<uint8_t> d;
+    std::vector<uint8_t> chall_3;
+    std::vector<uint8_t*> pdec;
+    std::vector<uint8_t*> com;
+};
 
 class Signature {
    public:
@@ -28,8 +39,9 @@ class Signature {
         params_.tau1 = 32;
         params_.tau = 32;
     }
-    void sign(const uint8_t signer_index, const std::vector<uint8_t>& msg);
-    void verify();
+    void sign(const uint8_t signer_index, const std::vector<uint8_t>& msg,
+              signature_t* sig);
+    bool verify(const std::vector<uint8_t>& msg, const signature_t* sig);
 
    private:
     void keygen();
@@ -55,7 +67,7 @@ class Signature {
                         std::vector<uint8_t>& rootkey,
                         std::vector<uint8_t>& iv);
 
-    public:
+   public:
     void gen_witness(uint8_t* witness, uint8_t index);
 
    private:
