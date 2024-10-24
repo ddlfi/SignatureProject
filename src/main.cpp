@@ -7,7 +7,7 @@ int main() {
 
     gen_field_base(field_base);
 
-    Signature signer;
+    Signature signer(64);
     std::vector<uint8_t> msg = {0x11,0x22};
     // gen_field_base(field_base);
     // std::vector<uint8_t> witness(22*256/8);
@@ -34,7 +34,7 @@ int main() {
     // if(s3.inverse() == s2.multiply_with_transposed_GF2_matrix(matrix_transposed[1])+key+roundconst[2]) std::cout<<"3 pass"<<std::endl;
     signature_t sig;
 
-    signer.sign(5,msg,&sig);
+    signer.sign(41,msg,&sig);
 
     if(signer.verify(msg,&sig)){
         std::cout<<"pass"<<std::endl;

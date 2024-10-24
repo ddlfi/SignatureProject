@@ -1,5 +1,7 @@
 #include "signature.h"
 
+#include <cmath>
+
 std::vector<uint8_t> XOR_(const std::vector<uint8_t>& a,
                           const std::vector<uint8_t>& b) {
     std::vector<uint8_t> result;
@@ -11,16 +13,16 @@ std::vector<uint8_t> XOR_(const std::vector<uint8_t>& a,
 }
 
 void Signature::keygen() {
-    for (auto i = 0; i < 8; i++) {
+    for (auto i = 0; i < key_num_; i++) {
         rain(skey_[i], rain_msg_, pkey_[i], nullptr, 0);
     }
 }
 
 void Signature::treegen() {
-    for (int i = 8; i < 16; i++) {
-        tree_[i] = pkey_[i - 8];
+    for (int i = key_num_; i < tree_node_num_; i++) {
+        tree_[i] = pkey_[i - key_num_];
     }
-    int index = 7;
+    int index = key_num_ - 1;
     while (index != 0) {
         hash_1(tree_[2 * index], tree_[2 * index + 1], s_0_, tree_[index],
                nullptr, 0);
@@ -140,7 +142,7 @@ void Signature::gen_witness(uint8_t* witness, uint8_t index) {
     std::vector<uint8_t> tmp;
     rain(skey_[index], rain_msg_, tmp, witness, 1);
     witness += 3 * 32UL;  // 最后一个witness和下一次hash重叠了，因此+3而非4
-    index = index + 8;
+    index = index + key_num_;
     while (index != 1) {
         if (index % 2) {
             hash_1(tree_[index], tree_[index - 1], s_1_, tmp, witness, 1);
@@ -156,8 +158,8 @@ void Signature::gen_witness(uint8_t* witness, uint8_t index) {
 
 void Signature::sign(const uint8_t signer_index,
                      const std::vector<uint8_t>& msg, signature_t* sig) {
-    const unsigned int ell = (4 + 6 + 6 + 6) * 256;
-    const unsigned int muti_times = 3 + 4 + 4 + 4;
+    const unsigned int ell = (4 + 6 * log2(key_num_)) * 256;
+    const unsigned int muti_times = 3 + 4 * log2(key_num_);
     const unsigned int ell_bytes = ell / 8;
     const unsigned int ell_hat = ell + lambda_ * 2 + UNIVERSAL_HASH_B_BITS;
     const unsigned int ell_hat_bytes = ell_hat / 8;
@@ -168,7 +170,7 @@ void Signature::sign(const uint8_t signer_index,
     sig->iv.resize(iv_size_);
     // std::vector<uint8_t> iv(iv_size_);
     gen_rootkey_iv(mu, signer_index, rootkey, sig->iv);
-    
+
     std::vector<uint8_t> hcom(lambda_bytes_ * 2);
     std::vector<vec_com_t> vecCom(params_.tau);
     std::vector<uint8_t> u(ell_hat_bytes);
@@ -225,7 +227,8 @@ void Signature::sign(const uint8_t signer_index,
     std::vector<field::GF2_256> A_0(muti_times);
     sig->a_tilde.resize(muti_times);
     path_prove(witness.data(), v_combined_gf_256_vec.data(),
-               v_gf_256_vec.data(), rain_msg_, A_0.data(), sig->a_tilde.data());
+               v_gf_256_vec.data(), rain_msg_, A_0.data(), sig->a_tilde.data(),
+               log2(key_num_));
     std::cout << "9" << std::endl;
     sig->chall_3.resize(lambda_bytes_);
     // std::vector<uint8_t> chall_3(lambda_bytes_);
@@ -260,8 +263,8 @@ void Signature::sign(const uint8_t signer_index,
 
 bool Signature::verify(const std::vector<uint8_t>& msg,
                        const signature_t* sig) {
-    const unsigned int ell = (4 + 6 + 6 + 6) * 256;
-    const unsigned int muti_times = 3 + 4 + 4 + 4;
+    const unsigned int ell = (4 + 6 * log2(key_num_)) * 256;
+    const unsigned int muti_times = 3 + 4 * log2(key_num_);
     const unsigned int ell_bytes = ell / 8;
     const unsigned int ell_hat = ell + lambda_ * 2 + UNIVERSAL_HASH_B_BITS;
     const unsigned int ell_hat_bytes = ell_hat / 8;
@@ -292,7 +295,7 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
     for (unsigned int i = 1; i < lambda_; ++i) {
         Dtilde[i] = Dtilde[0] + i * (lambda_bytes_ + UNIVERSAL_HASH_B);
     }
-    memset(Dtilde[0],0,lambda_ * (lambda_bytes_ + UNIVERSAL_HASH_B));
+    memset(Dtilde[0], 0, lambda_ * (lambda_bytes_ + UNIVERSAL_HASH_B));
 
     unsigned int Dtilde_idx = 0;
     unsigned int q_idx = 0;
@@ -368,7 +371,7 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
 
     std::vector<field::GF2_256> B(muti_times);
     path_verify(q_combined_gf_256_vec.data(), q_gf_256_vec.data(), delta_field,
-                rain_msg_, B.data());
+                rain_msg_, B.data(), log2(key_num_));
 
     std::vector<field::GF2_256> A_0(muti_times);
 

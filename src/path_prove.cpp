@@ -283,29 +283,24 @@ void gen_combined_field_vec(field::GF2_256* field_vec,
 
 void path_prove(const uint8_t* witness, field::GF2_256* v,
                 field::GF2_256* v_vec, const std::vector<uint8_t>& in,
-                field::GF2_256* A_0, field::GF2_256* A_1) {
+                field::GF2_256* A_0, field::GF2_256* A_1,
+                unsigned int hash_times) {
     rain_enc_constrain_256_prover(v, v_vec, witness, in, A_0, A_1);
 
-    hash_constrain_256_prover(v + 3, v_vec + 3 * 256,
-                              witness + 12 * sizeof(uint64_t), A_0 + 3,
-                              A_1 + 3);
-
-    hash_constrain_256_prover(v + 9, v_vec + 9 * 256,
-                              witness + 36 * sizeof(uint64_t), A_0 + 7,
-                              A_1 + 7);
-
-    hash_constrain_256_prover(v + 15, v_vec + 15 * 256,
-                              witness + 60 * sizeof(uint64_t), A_0 + 11,
-                              A_1 + 11);
+    for (int i = 0; i < hash_times; i++) {
+        hash_constrain_256_prover(v + 3 + 6 * i, v_vec + (3 + 6 * i) * 256,
+                                  witness + (12 + 24 * i) * sizeof(uint64_t),
+                                  A_0 + (3 + 4 * i), A_1 + (3 + 4 * i));
+    }
 }
 
 void path_verify(field::GF2_256* q, field::GF2_256* q_vec, field::GF2_256 delta,
-                 const std::vector<uint8_t>& in, field::GF2_256* B) {
+                 const std::vector<uint8_t>& in, field::GF2_256* B,
+                 unsigned int hash_times) {
     rain_enc_constrain_256_verifier(q, q_vec, delta, in, B);
 
-    hash_constrain_256_verifier(q + 3, q_vec + 3 * 256, delta, B + 3);
-
-    hash_constrain_256_verifier(q + 9, q_vec + 9 * 256, delta, B + 7);
-
-    hash_constrain_256_verifier(q + 15, q_vec + 15 * 256, delta, B + 11);
+    for (int i = 0; i < hash_times; i++) {
+        hash_constrain_256_verifier(q + 3 + 6 * i, q_vec + (3 + 6 * i) * 256,
+                                    delta, B + (3 + 4 * i));
+    }
 }

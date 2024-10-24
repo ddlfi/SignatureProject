@@ -61,10 +61,12 @@ void hash_constrain_256_verifier(field::GF2_256* q, field::GF2_256* q_vec,
 
 void path_prove(const uint8_t* witness, field::GF2_256* v,
                 field::GF2_256* v_vec, const std::vector<uint8_t>& in,
-                field::GF2_256* A_0, field::GF2_256* A_1);
+                field::GF2_256* A_0, field::GF2_256* A_1,
+                unsigned int hash_times);
 
 void path_verify(field::GF2_256* q, field::GF2_256* q_vec, field::GF2_256 delta,
-                 const std::vector<uint8_t>& in, field::GF2_256* B);
+                 const std::vector<uint8_t>& in, field::GF2_256* B,
+                 unsigned int hash_times);
 
 void convert_vec_to_field(uint8_t** vec, field::GF2_256* field_vec,
                           const unsigned int ell, const unsigned int lambda);
