@@ -1,4 +1,4 @@
-# Project Name
+# Ring Signature base on VOLEith and Hash Function
 
 ## Introduction
 This project is an implementation of ring signature based on hash functions and VOLEith tech.
