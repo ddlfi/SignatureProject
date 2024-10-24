@@ -81,5 +81,3 @@ bool rain(const field::GF2_256 &key_in, const field::GF2_256 &plaintext_in,
 
     return true;
 }
-
-
