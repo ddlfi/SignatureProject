@@ -48,11 +48,11 @@ class Signature {
         gen_pkey();
         gen_tree();
         params_.lambda = 256;
-        params_.k1 = 8;
-        params_.k0 = 8;
+        params_.k1 = 4;
+        params_.k0 = 4;
         params_.tau0 = 0;
-        params_.tau1 = 32;
-        params_.tau = 32;
+        params_.tau1 = 64;
+        params_.tau = 64;
     }
     void sign(const uint8_t signer_index, const std::vector<uint8_t>& msg,
               signature_t* sig);
