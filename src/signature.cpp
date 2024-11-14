@@ -1,16 +1,16 @@
 #include "signature.h"
 
+#include <chrono>
 #include <cmath>
 #include <random>
-#include <chrono>
 
 void Signature::gen_skey() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<uint8_t> dis(0, 255);
 
-    for (auto &skey_i : skey_) {
-        for(auto &value : skey_i){
+    for (auto& skey_i : skey_) {
+        for (auto& value : skey_i) {
             value = dis(gen);
         }
     }
@@ -40,7 +40,7 @@ void Signature::hash_1(const std::vector<uint8_t>& input_0,
                        std::vector<uint8_t>& output, uint8_t* witness,
                        bool flag) {
     if (flag && witness) {
-        (witness, input_0.data(), 32UL);
+        memcpy(witness, input_0.data(), 32UL);
         memcpy(witness + 32UL, input_1.data(), 32UL);
         memcpy(witness + 64UL, s_byte.data(), 32UL);
         witness += 96UL;
@@ -164,7 +164,7 @@ void Signature::gen_rootkey_iv(const std::vector<uint8_t>& mu,
     H3_final(&h3_ctx, rootkey.data(), lambda_bytes_, iv.data());
 }
 
-void Signature::gen_witness(uint8_t* witness, uint8_t index) {
+void Signature::gen_witness(uint8_t* witness, unsigned int index) {
     std::vector<uint8_t> tmp;
     rain(skey_[index], rain_msg_, tmp, witness, 1);
     witness += 3 * 32UL;  // 最后一个witness和下一次hash重叠了，因此+3而非4
@@ -182,7 +182,7 @@ void Signature::gen_witness(uint8_t* witness, uint8_t index) {
     }
 }
 
-void Signature::sign(const uint8_t signer_index,
+void Signature::sign(unsigned int signer_index,
                      const std::vector<uint8_t>& msg, signature_t* sig) {
     const unsigned int ell = (4 + 6 * log2(key_num_)) * 256;
     const unsigned int muti_times = 3 + 4 * log2(key_num_);
@@ -303,11 +303,13 @@ void Signature::sign(const uint8_t signer_index,
 
     auto total_time = end_time - start_time;
     auto vole_time = vole_commit_end_time - vole_commit_start_time;
-    auto sign_time = total_time - vole_time;
 
-    std::cout<<"sign total time is : "<<std::chrono::duration<double, std::milli>(total_time).count()<<" ms"<<std::endl;
-    std::cout<<"sign vole commit time is : "<<std::chrono::duration<double, std::milli>(vole_time).count()<<" ms"<<std::endl;
-    std::cout<<"sign time is : "<<std::chrono::duration<double, std::milli>(sign_time).count()<<" ms"<<std::endl;
+    std::cout << "sign total time is : "
+              << std::chrono::duration<double, std::milli>(total_time).count()
+              << " ms" << std::endl;
+    std::cout << "sign vole commit time is : "
+              << std::chrono::duration<double, std::milli>(vole_time).count()
+              << " ms" << std::endl;
 
     delete V[0];
 }
@@ -325,7 +327,8 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
     std::vector<uint8_t> mu(2 * lambda_bytes_);
     hash_pk_msg(msg, mu);
 
-    auto vole_reconstruct_start_time = std::chrono::high_resolution_clock::now();
+    auto vole_reconstruct_start_time =
+        std::chrono::high_resolution_clock::now();
 
     std::vector<uint8_t*> Q(lambda_);
     std::vector<uint8_t> hcom(lambda_bytes_ * 2);
@@ -336,7 +339,7 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
     vole_reconstruct(sig->iv.data(), sig->chall_3.data(), sig->pdec.data(),
                      sig->com.data(), hcom.data(), Q.data(), ell_hat, &params_);
 
-    auto vole_reconstruct_end_time = std::chrono::high_resolution_clock::now();                 
+    auto vole_reconstruct_end_time = std::chrono::high_resolution_clock::now();
 
     std::vector<uint8_t> chall_1(5 * lambda_bytes_ + 8);
     hash_challenge_1(mu, hcom, sig->c, sig->iv, chall_1, ell, params_.tau);
@@ -450,8 +453,14 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
     auto total_time = end_time - start_time;
     auto vole_time = vole_reconstruct_end_time - vole_reconstruct_start_time;
 
-    std::cout<<"verify total time is : "<<std::chrono::duration<double, std::milli>(total_time).count()<<" ms"<<std::endl;
-    std::cout<<"verify vole reconstruct time is : "<<std::chrono::duration<double, std::milli>(vole_time).count()<<" ms"<<std::endl;
+    std::cout << "verify total time is : "
+              << std::chrono::duration<double, std::milli>(total_time).count()
+              << " ms" << std::endl;
+    std::cout << "verify vole reconstruct time is : "
+              << std::chrono::duration<double, std::milli>(vole_time).count()
+              << " ms" << std::endl;
+
+
 
     delete Q[0];
     delete Q_[0];

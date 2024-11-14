@@ -17,9 +17,10 @@ struct signature_t {
     std::vector<uint8_t*> com;
 
 
-    // /////for debug
+    /////for debug
 
     // std::vector<u_int8_t> chall_2;
+    // std::vector<u_int8_t> chall_1;
     // std::vector<field::GF2_256> A_0;
     // std::vector<field::GF2_256> A_1;
 
@@ -48,13 +49,13 @@ class Signature {
         gen_pkey();
         gen_tree();
         params_.lambda = 256;
-        params_.k1 = 4;
-        params_.k0 = 4;
+        params_.k1 = 8;
+        params_.k0 = 8;
         params_.tau0 = 0;
-        params_.tau1 = 64;
-        params_.tau = 64;
+        params_.tau1 = 32;
+        params_.tau = 32;
     }
-    void sign(const uint8_t signer_index, const std::vector<uint8_t>& msg,
+    void sign(unsigned int signer_index, const std::vector<uint8_t>& msg,
               signature_t* sig);
     bool verify(const std::vector<uint8_t>& msg, const signature_t* sig);
 
@@ -99,7 +100,7 @@ class Signature {
                         std::vector<uint8_t>& rootkey,
                         std::vector<uint8_t>& iv);
 
-    void gen_witness(uint8_t* witness, uint8_t index);
+    void gen_witness(uint8_t* witness, unsigned int index);
 
    private:
     const std::vector<uint8_t> rain_msg_ = {
