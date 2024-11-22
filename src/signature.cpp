@@ -190,7 +190,7 @@ void Signature::sign(unsigned int signer_index,
     const unsigned int ell_hat = ell + lambda_ * 2 + UNIVERSAL_HASH_B_BITS;
     const unsigned int ell_hat_bytes = ell_hat / 8;
 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<uint8_t> mu(2 * lambda_bytes_);
     hash_pk_msg(msg, mu);
@@ -299,14 +299,14 @@ void Signature::sign(unsigned int signer_index,
         vec_com_clear(&vecCom[i]);
     }
 
-    auto end_time = std::chrono::high_resolution_clock::now();
+    //auto end_time = std::chrono::high_resolution_clock::now();
 
-    auto total_time = end_time - start_time;
+    //auto total_time = end_time - start_time;
     auto vole_time = vole_commit_end_time - vole_commit_start_time;
 
-    std::cout << "sign total time is : "
-              << std::chrono::duration<double, std::milli>(total_time).count()
-              << " ms" << std::endl;
+    // std::cout << "sign total time is : "
+    //           << std::chrono::duration<double, std::milli>(total_time).count()
+    //           << " ms" << std::endl;
     std::cout << "sign vole commit time is : "
               << std::chrono::duration<double, std::milli>(vole_time).count()
               << " ms" << std::endl;
@@ -322,7 +322,7 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
     const unsigned int ell_hat = ell + lambda_ * 2 + UNIVERSAL_HASH_B_BITS;
     const unsigned int ell_hat_bytes = ell_hat / 8;
 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<uint8_t> mu(2 * lambda_bytes_);
     hash_pk_msg(msg, mu);
@@ -448,14 +448,14 @@ bool Signature::verify(const std::vector<uint8_t>& msg,
     hash_challenge_3(chall_3, chall_2, sig->A_1_tilde_bytes, A_0_tilde_bytes,
                      lambda_);
 
-    auto end_time = std::chrono::high_resolution_clock::now();
+    //auto end_time = std::chrono::high_resolution_clock::now();
 
-    auto total_time = end_time - start_time;
+    // auto total_time = end_time - start_time;
     auto vole_time = vole_reconstruct_end_time - vole_reconstruct_start_time;
 
-    std::cout << "verify total time is : "
-              << std::chrono::duration<double, std::milli>(total_time).count()
-              << " ms" << std::endl;
+    // std::cout << "verify total time is : "
+    //           << std::chrono::duration<double, std::milli>(total_time).count()
+    //           << " ms" << std::endl;
     std::cout << "verify vole reconstruct time is : "
               << std::chrono::duration<double, std::milli>(vole_time).count()
               << " ms" << std::endl;
